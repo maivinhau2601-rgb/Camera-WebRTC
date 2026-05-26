@@ -8,16 +8,16 @@ fi
 
 source venv/bin/activate
 
-packages=("aiohttp" "aiortc")
+# Only real pip packages here
+packages=("flask")
 
 for pkg in "${packages[@]}"
 do
-    if python3 -c "import $pkg" >/dev/null 2>&1; then
+    if python -c "import flask" >/dev/null 2>&1; then
         echo "$pkg OK"
     else
         echo "$pkg missing"
         echo "Installing $pkg..."
-
         pip install "$pkg"
     fi
 done
