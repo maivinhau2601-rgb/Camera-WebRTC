@@ -1,0 +1,124 @@
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+
+    root /var/www/html;
+    index stream.html;
+    server_name example.com; # Replace your domain
+
+
+    location = /login.html {
+        auth_request off;
+    }
+
+
+    location = /login {
+        auth_request off;
+        proxy_pass http://127.0.0.1:3000/login;
+        proxy_set_header Host $host;
+        proxy_set_header Cookie $http_cookie;
+        proxy_set_header X-Forwarded-Proto https;
+    }
+
+    location = /logout {
+        auth_request off;
+        proxy_pass http://127.0.0.1:3000/logout;
+        proxy_set_header Host $host;
+        proxy_set_header Cookie $http_cookie;
+    }
+
+    location / {
+        auth_request /auth;
+        error_page 401 = @login;
+        try_files $uri $uri/ /stream.html =404;
+    }
+
+    location = /auth {
+        internal;
+        proxy_pass_request_body off;
+        proxy_set_header Content-Length "";
+        proxy_set_header Cookie $http_cookie;
+        proxy_set_header Host $host;
+        proxy_pass http://127.0.0.1:3000/auth;
+    }
+
+    location /whep/ {
+        auth_request /auth;
+        error_page 401 = @login;
+        proxy_set_header Host $host;
+        proxy_set_header Cookie $http_cookie;
+        add_header Access-Control-Allow-Origin *;
+        add_header Access-Control-Allow-Methods "GET, POST, OPTIONS";
+        add_header Access-Control-Allow-Headers "Content-Type, Authorization";
+        proxy_pass http://127.0.0.1:8889/;
+        if ($request_method = OPTIONS) {
+            return 204;
+        }
+    }
+
+    location @login {
+        return 302 /login.html;
+    }
+}
+
+server {
+    listen 443 ssl;
+    server_name camera.maivinh.store; # Replace your domain
+    root /var/www/html;
+    index stream.html;
+
+    ssl_certificate /etc/ssl/certs/cloudflare/origin.crt;     # You can get them from cloudflare
+    ssl_certificate_key /etc/ssl/certs/cloudflare/origin.key; # You can get them from cloudflare
+
+    location = /login.html {
+        auth_request off;
+    }
+
+    location = /login {
+        auth_request off;
+        proxy_pass http://127.0.0.1:3000/login;
+        proxy_set_header Host $host;
+        proxy_set_header Cookie $http_cookie;
+        proxy_set_header X-Forwarded-Proto https;
+    }
+
+    location = /logout {
+        auth_request off;
+        proxy_pass http://127.0.0.1:3000/logout;
+        proxy_set_header Host $host;
+        proxy_set_header Cookie $http_cookie;
+    }
+
+    location / {
+        auth_request /auth;
+        error_page 401 = @login;
+        try_files $uri $uri/ =404;
+    }
+
+    location = /auth {
+        internal;
+        proxy_pass_request_body off;
+        proxy_set_header Content-Length "";
+        proxy_set_header Cookie $http_cookie;
+        proxy_set_header Host $host;
+        proxy_pass http://127.0.0.1:3000/auth;
+    }
+
+    location /whep/ {
+        auth_request /auth;
+        error_page 401 = @login;
+        proxy_set_header Host $host;
+        proxy_set_header Cookie $http_cookie;
+        add_header Access-Control-Allow-Origin *;
+        add_header Access-Control-Allow-Methods "GET, POST, OPTIONS";
+        add_header Access-Control-Allow-Headers "Content-Type, Authorization";
+        proxy_pass http://127.0.0.1:8889/;
+        if ($request_method = OPTIONS) {
+            return 204;
+        }
+    }
+
+    location @login {
+        return 302 /login.html;
+    }
+}

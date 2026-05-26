@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Camera Dashboard</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: sans-serif;
+      background: #0f1117;
+      color: #e5e7eb;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1.25rem 0.75rem;
+    }
+
+    /* ── Topbar ── */
+    .topbar {
+      width: 100%;
+      max-width: 860px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.25rem;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .logo-icon {
+      width: 30px;
+      height: 30px;
+      background: #185FA5;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo-text { font-size: 15px; font-weight: 500; }
+    .badge {
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      background: rgba(16, 110, 86, 0.25);
+      color: #34d399;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #34d399;
+      animation: pulse 1.5s infinite;
+      flex-shrink: 0;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1 }
+      50% { opacity: 0.3 }
+    }
+
+    /* ── Stream card ── */
+    .stream-card {
+      width: 100%;
+      max-width: 860px;
+      background: #1a1d27;
+      border: 0.5px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .stream-header {
+      padding: 12px 18px;
+      border-bottom: 0.5px solid rgba(255,255,255,0.07);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .stream-header span { font-size: 13px; font-weight: 500; }
+    .stream-label {
+      font-size: 12px;
+      color: #6b7280;
+      font-family: monospace;
+    }
+    .video-box {
+      width: 100%;
+      aspect-ratio: 16/9;
+      background: #0a0a0f;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .video-box video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .video-placeholder {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    .video-placeholder svg {
+      width: 48px;
+      height: 48px;
+      opacity: 0.2;
+    }
+    .video-placeholder p {
+      font-size: 13px;
+      color: #4b5563;
+      text-align: center;
+      padding: 0 1rem;
+    }
+
+    /* ── Stream footer ── */
+    .stream-footer {
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .uptime-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #6b7280;
+      flex-shrink: 0;
+    }
+    .uptime-wrap svg { opacity: 0.4; flex-shrink: 0; }
+    .controls {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      height: 36px;
+      padding: 0 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      font-family: sans-serif;
+      transition: opacity 0.15s, transform 0.1s;
+      white-space: nowrap;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-connect {
+      background: #185FA5;
+      color: #e6f1fb;
+    }
+    .btn-connect:hover { background: #0c447c; }
+    .btn-disconnect {
+      background: rgba(255,255,255,0.06);
+      color: #9ca3af;
+      border: 0.5px solid rgba(255,255,255,0.1);
+    }
+    .btn-disconnect:hover { background: rgba(255,255,255,0.1); color: #e5e7eb; }
+    .btn-logout {
+      background: rgba(255,255,255,0.06);
+      color: #9ca3af;
+      border: 0.5px solid rgba(255,255,255,0.1);
+    }
+    .btn-logout:hover { background: rgba(255,255,255,0.1); color: #e5e7eb; }
+
+    /* ── Info row ── */
+    .info-row {
+      width: 100%;
+      max-width: 860px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 0.875rem;
+    }
+    .stat-card {
+      background: #1a1d27;
+      border: 0.5px solid rgba(255,255,255,0.07);
+      border-radius: 10px;
+      padding: 12px 16px;
+    }
+    .stat-card .s-label {
+      font-size: 11px;
+      color: #6b7280;
+      margin-bottom: 4px;
+    }
+    .stat-card .s-val {
+      font-size: 14px;
+      font-weight: 500;
+      color: #e5e7eb;
+    }
+
+    /* ── Mobile breakpoints ── */
+    @media (max-width: 600px) {
+      body { padding: 1rem 0.625rem; }
+
+      .topbar { margin-bottom: 1rem; }
+      .logo-text { font-size: 14px; }
+
+      .stream-header { padding: 10px 14px; }
+      .stream-label { font-size: 11px; }
+
+      /* footer: stack uptime above buttons on very small screens */
+      .stream-footer {
+        padding: 10px 14px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+      .controls {
+        width: 100%;
+        justify-content: flex-end;
+      }
+      .btn {
+        height: 34px;
+        padding: 0 14px;
+        font-size: 12px;
+        flex: 1 1 0;
+        text-align: center;
+      }
+
+      /* 2-col grid on phone */
+      .info-row {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        margin-top: 0.75rem;
+      }
+      .stat-card { padding: 10px 12px; }
+      .stat-card .s-val { font-size: 13px; }
+    }
+
+    @media (max-width: 380px) {
+      .badge { padding: 4px 8px; font-size: 11px; }
+      .stream-label { display: none; } /* hide IP on very small screens */
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="logo">
+      <div class="logo-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+          <path d="M15 10l4.553-2.276A1 1 0 0121 8.723v6.554a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>
+        </svg>
+      </div>
+      <span class="logo-text">CamView</span>
+    </div>
+    <div class="badge"><div class="dot"></div> Live</div>
+  </div>
+
+  <div class="stream-card">
+    <div class="stream-header">
+      <span>Camera 1</span>
+      <span class="stream-label">192.168.30.17</span>
+    </div>
+    <div class="video-box">
+      <video id="video" autoplay muted playsinline></video>
+      <div class="video-placeholder" id="placeholder">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.2">
+          <path d="M15 10l4.553-2.276A1 1 0 0121 8.723v6.554a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>
+        </svg>
+        <p>Press Connect to start stream</p>
+      </div>
+    </div>
+    <div class="stream-footer">
+      <div class="uptime-wrap">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+        </svg>
+        <span id="uptime">00:00:00</span>
+      </div>
+      <div class="controls">
+        <button class="btn btn-connect" onclick="startStream()">Connect</button>
+        <button class="btn btn-disconnect" onclick="stopStream()">Disconnect</button>
+        <button class="btn btn-logout" id="logout-btn" onclick="logout()">Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-row">
+    <div class="stat-card">
+      <div class="s-label">Protocol</div>
+      <div class="s-val">WebRTC</div>
+    </div>
+    <div class="stat-card">
+      <div class="s-label">Video codec</div>
+      <div class="s-val">H.264</div>
+    </div>
+    <div class="stat-card">
+      <div class="s-label">Audio codec</div>
+      <div class="s-val">Opus</div>
+    </div>
+    <div class="stat-card">
+      <div class="s-label">Endpoint</div>
+      <div class="s-val" style="font-size:12px; font-family:monospace;">/camera1/whep</div>
+    </div>
+  </div>
+
+<script>
+let pc = null;
+let startTime = null;
+let timerInterval = null;
+const video = document.getElementById('video');
+const placeholder = document.getElementById('placeholder');
+const WHEP_URL = "https://URL/whep/camera1/whep";
+
+async function startStream() {
+  if (pc) stopStream();
+  pc = new RTCPeerConnection({
+    iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+  });
+  pc.addTransceiver('video', { direction: 'recvonly' });
+  pc.addTransceiver('audio', { direction: 'recvonly' });
+  pc.ontrack = (e) => {
+    if (e.track.kind === 'video') {
+      video.srcObject = e.streams[0];
+      placeholder.style.display = 'none';
+      startTimer();
+    }
+  };
+  const offer = await pc.createOffer();
+  await pc.setLocalDescription(offer);
+  try {
+    const resp = await fetch(WHEP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/sdp' },
+      body: pc.localDescription.sdp
+    });
+    const answer = await resp.text();
+    await pc.setRemoteDescription({ type: 'answer', sdp: answer });
+  } catch (err) {
+    placeholder.style.display = 'flex';
+    placeholder.querySelector('p').textContent = 'Connection failed — check server';
+  }
+  setInterval(async () => {
+    const response = await fetch('/checkauth');
+    if (response.status === 401) {
+      alert("Login again please");
+      window.location.reload();
+    }
+  }, 10000);
+}
+
+function stopStream() {
+  if (pc) { pc.close(); pc = null; }
+  video.srcObject = null;
+  placeholder.style.display = 'flex';
+  placeholder.querySelector('p').textContent = 'Press Connect to start stream';
+  clearInterval(timerInterval);
+  document.getElementById('uptime').textContent = '00:00:00';
+}
+
+async function logout() {
+  try {
+    await fetch("/logout", { method: "POST", credentials: "include" });
+    window.location.reload();
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+function startTimer() {
+  startTime = Date.now();
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    const s = Math.floor((Date.now() - startTime) / 1000);
+    const h = String(Math.floor(s / 3600)).padStart(2, '0');
+    const m = String(Math.floor((s % 3600) / 60)).padStart(2, '0');
+    const sec = String(s % 60).padStart(2, '0');
+    document.getElementById('uptime').textContent = `${h}:${m}:${sec}`;
+  }, 1000);
+}
+</script>
+</body>
+</html>

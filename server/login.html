@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0a0a0b;
+      --surface:   #111114;
+      --border:    #1e1e24;
+      --border-focus: #3a3a4a;
+      --text:      #e8e8ec;
+      --muted:     #55555f;
+      --accent:    #e8e8ec;
+      --accent-dim:#2a2a34;
+      --danger:    #e05c5c;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      letter-spacing: 0.01em;
+    }
+
+    /* subtle grid overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 48px 48px;
+      opacity: 0.45;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* vignette */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.72) 100%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 380px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 48px 40px 44px;
+      animation: rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .logo {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      font-weight: 400;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 36px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo::before {
+      content: '';
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      background: var(--text);
+      border-radius: 50%;
+      animation: pulse 2.4s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.25; }
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 36px;
+      line-height: 1.5;
+    }
+
+    .field {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 14px;
+      font-weight: 300;
+      padding: 12px 14px;
+      outline: none;
+      transition: border-color 0.18s, background 0.18s;
+      border-radius: 0;
+    }
+
+    input::placeholder { color: var(--muted); opacity: 0.6; }
+
+    input:focus {
+      border-color: var(--border-focus);
+      background: #0d0d10;
+    }
+
+    input.error { border-color: var(--danger); }
+
+    .error-msg {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      color: var(--danger);
+      margin-top: 6px;
+      letter-spacing: 0.05em;
+      display: none;
+    }
+
+    .error-msg.visible { display: block; }
+
+
+    .forgot {
+      font-size: 12px;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+
+    .forgot:hover { color: var(--text); }
+
+    button[type="submit"] {
+      width: 100%;
+      background: var(--text);
+      color: var(--bg);
+      border: none;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      padding: 14px;
+      cursor: pointer;
+      transition: background 0.18s, opacity 0.18s;
+      position: relative;
+      overflow: hidden;
+      border-radius: 0;
+    }
+
+    button[type="submit"]:hover { background: #d0d0d6; }
+    button[type="submit"]:active { background: #b8b8c2; }
+
+    button[type="submit"].loading {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    .spinner {
+      display: none;
+      width: 14px;
+      height: 14px;
+      border: 1.5px solid rgba(0,0,0,0.25);
+      border-top-color: #000;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      position: absolute;
+      right: 18px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    .loading .spinner { display: block; }
+
+    @keyframes spin {
+      to { transform: translateY(-50%) rotate(360deg); }
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 32px 0 24px;
+    }
+
+    .footer {
+      font-size: 11px;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="card">
+      <div class="logo">System</div>
+      <h1>Welcome back</h1>
+      <p class="subtitle">Enter your credentials to continue.</p>
+
+      <form id="loginForm" novalidate>
+        <div class="field">
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username" placeholder="your.username" autocomplete="username" spellcheck="false"/>
+          <div class="error-msg" id="usernameError">Username is required.</div>
+        </div>
+
+        <div class="field">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" placeholder="••••••••" autocomplete="current-password"/>
+          <div class="error-msg" id="passwordError">Password is required.</div>
+        </div>
+
+        <button type="submit" id="submitBtn">
+          Sign in
+          <span class="spinner"></span>
+        </button>
+      </form>
+
+      <div class="divider"></div>
+      <p class="footer">Contact your administrator if you need access.</p>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('loginForm');
+    const btn  = document.getElementById('submitBtn');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const username = document.getElementById('username');
+      const password = document.getElementById('password');
+      const uErr = document.getElementById('usernameError');
+      const pErr = document.getElementById('passwordError');
+
+      // Reset
+      [username, password].forEach(i => i.classList.remove('error'));
+      [uErr, pErr].forEach(e => e.classList.remove('visible'));
+
+      let valid = true;
+      if (!username.value.trim()) {
+        username.classList.add('error');
+        uErr.classList.add('visible');
+        valid = false;
+      }
+      if (!password.value) {
+        password.classList.add('error');
+        pErr.classList.add('visible');
+        valid = false;
+      }
+
+      if (!valid) return;
+
+      // Simulate request
+      btn.classList.add('loading');
+      btn.querySelector('.spinner').style.display = 'block';
+
+      await new Promise(r => setTimeout(r, 1400));
+
+      btn.classList.remove('loading');
+      btn.querySelector('.spinner').style.display = 'none';
+
+      // Authenticate login credentials
+      const login = await fetch("http://127.0.0.1:3000/login",{
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        credentials: "include",
+        body: JSON.stringify({
+          username:username.value,
+          password:password.value
+        })
+      });
+      console.log(login.error);
+      if (login.ok) {
+        window.location.href = "stream.html";
+      }else{
+        window.alert("Login Failed")
+      }
+    });
+
+
+  </script>
+</body>
+</html>

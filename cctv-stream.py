@@ -3,15 +3,15 @@ import asyncio
 from aiortc import RTCPeerConnection,RTCSessionDescription,RTCConfiguration,RTCIceServer
 from aiortc.contrib.media import MediaPlayer
 
-RTSP_URL = "rtsp://username:password@local_camera_ip:554/stream1"
-SERVER_IP = "x.x.x.x"
+RTSP_URL = "rtsp://maivinhau2601:Maytinhcasio580@192.168.30.17:554/stream1"
+SERVER_IP = "122.248.226.30"
 WHIP_URL = f"http://{SERVER_IP}:8889/camera1/whip"
 
 async def push_stream():
     rtcconfig = RTCConfiguration(
         iceServers=[RTCIceServer(urls=["stun:stun.l.google.com:19302"])]
     )
-    rtcconection = RTCPeerConnection()
+    rtcconection = RTCPeerConnection(configuration=rtcconfig)
     mediaplayer = MediaPlayer(RTSP_URL)
 
     if mediaplayer.video:
